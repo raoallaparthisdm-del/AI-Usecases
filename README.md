@@ -37,6 +37,36 @@ python app.py
 streamlit run app.py
 ```
 
+## Logic flow (data + RAG)
+
+```mermaid
+flowchart TD
+	A([Start]) --> B[load_dotenv()]
+	B --> C[Resolve sales_data.csv path]
+	C --> D{CSV exists?}
+	D -- No --> E[Raise FileNotFoundError]
+	D -- Yes --> F[load_data()]
+	F --> G[pd.read_csv]
+	G --> H[pd.to_datetime(Date)]
+	H --> I[build_knowledge_base(df)]
+	I --> J[build_fact_list(kb)]
+	J --> K[SimpleRetriever(facts)]
+	K --> L{OPENAI_API_KEY set?}
+	L -- No --> M[Raise ValueError]
+	L -- Yes --> N[OpenAILLM()]
+	N --> O[RAGEngine(retriever, llm)]
+	O --> P[Ready: rag, kb]
+
+	subgraph RAG_Answer_Path
+		Q[User query] --> R[rag.answer(query, memory)]
+		R --> S[Retriever selects relevant facts]
+		S --> T[LLM generates response]
+		T --> U[Return answer]
+	end
+
+	P --> Q
+```
+
 ## Example questions
 
 - What are total sales by month in 2023?
